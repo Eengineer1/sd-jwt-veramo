@@ -1,5 +1,12 @@
 import { JSONObject, SDJwt, SDMap } from '@eengineer1/sd-jwt-ts-node';
-import { IPluginMethodMap, IAgentContext, CredentialPayload, IKeyManager, IDIDManager, IResolver } from '@veramo/core-types';
+import {
+	IPluginMethodMap,
+	IAgentContext,
+	CredentialPayload,
+	IKeyManager,
+	IDIDManager,
+	IResolver,
+} from '@veramo/core-types';
 
 /**
  * This interface describes the public API surface of this plugin.
@@ -67,10 +74,10 @@ export interface ICreateVerifiableCredentialSDJwtArgs {
 	sdMap?: SDMap;
 
 	/**
-     * Remove payload members during JWT-JSON transformation. Defaults to `true`.
-     * See https://www.w3.org/TR/vc-data-model/#jwt-encoding
-     */
-	removeOriginalFields?: boolean
+	 * Remove payload members during JWT-JSON transformation. Defaults to `true`.
+	 * See https://www.w3.org/TR/vc-data-model/#jwt-encoding
+	 */
+	removeOriginalFields?: boolean;
 
 	/**
 	 * [Optional] The ID of the key that should sign this credential.
@@ -105,7 +112,7 @@ export type TCreateVerifiableCredentialSDJwtResult = {
  *
  * @beta
  */
-export interface ICreateVerifiablePresentationSDJwtArgs {};
+export interface ICreateVerifiablePresentationSDJwtArgs {}
 
 /**
  * Result of {@link CredentialSDJwt.createVerifiablePresentationSDJwt}
@@ -123,7 +130,7 @@ export type TCreateVerifiablePresentationSDJwtResult = {};
  *
  * @beta
  */
-export interface IVerifyVerifiableCredentialSDJwtArgs {};
+export interface IVerifyVerifiableCredentialSDJwtArgs {}
 
 /**
  * Result of {@link CredentialSDJwt.verifyVerifiableCredentialSDJwt}
@@ -141,7 +148,7 @@ export type TVerifyVerifiableCredentialSDJwtResult = {};
  *
  * @beta
  */
-export interface IVerifyVerifiablePresentationSDJwtArgs {};
+export interface IVerifyVerifiablePresentationSDJwtArgs {}
 
 /**
  * Result of {@link CredentialSDJwt.verifyVerifiablePresentationSDJwt}

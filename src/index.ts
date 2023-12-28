@@ -1,5 +1,6 @@
 /**
  * @public
  */
-export { CredentialSDJwt } from './agent/CredentialSDJwt.js'
-export * from './types/ICredentialSDJwt.js'
+export * from './agent/CredentialSDJwt.js';
+export * from './crypto-provider/VeramoCompactAsyncJWTCryptoProvider.js';
+export * from './types/ICredentialSDJwt.js';

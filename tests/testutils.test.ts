@@ -1,10 +1,4 @@
-import {
-	IAgentOptions,
-	IDIDManager,
-	IKeyManager,
-	IResolver,
-	TAgent,
-} from '@veramo/core-types';
+import { IAgentOptions, IDIDManager, IKeyManager, IResolver, TAgent } from '@veramo/core-types';
 import { createAgent } from '@veramo/core';
 import { DIDManager, MemoryDIDStore } from '@veramo/did-manager';
 import { DIDResolverPlugin } from '@veramo/did-resolver';
@@ -18,8 +12,8 @@ import {
 	DefaultRPCUrls,
 	LitCompatibleCosmosChains,
 	LitNetworks,
-    ICheqd,
-    Cheqd,
+	ICheqd,
+	Cheqd,
 } from '@cheqd/did-provider-cheqd';
 import { CheqdNetwork } from '@cheqd/sdk';
 import { CredentialSDJwt } from '../src/agent/CredentialSDJwt';
@@ -36,16 +30,16 @@ export const faucet = {
 export function createLocalAgent<T extends TAgent<IDIDManager & IKeyManager & IResolver & ICheqd & ICredentialSDJwt>>(
 	options?: IAgentOptions
 ): T {
-    const didProviderCheqdTestnet = new CheqdDIDProvider({
-        defaultKms: 'local',
-        cosmosPayerSeed: faucet.mnemonic,
-        networkType: CheqdNetwork.Testnet,
-        rpcUrl: DefaultRPCUrls.testnet,
-        dkgOptions: {
-            chain: LitCompatibleCosmosChains.cheqdTestnet,
-            network: LitNetworks.serrano,
-        },
-    });
+	const didProviderCheqdTestnet = new CheqdDIDProvider({
+		defaultKms: 'local',
+		cosmosPayerSeed: faucet.mnemonic,
+		networkType: CheqdNetwork.Testnet,
+		rpcUrl: DefaultRPCUrls.testnet,
+		dkgOptions: {
+			chain: LitCompatibleCosmosChains.cheqdTestnet,
+			network: LitNetworks.serrano,
+		},
+	});
 	const defaultOptions = {
 		plugins: [
 			new KeyManager({
@@ -70,13 +64,13 @@ export function createLocalAgent<T extends TAgent<IDIDManager & IKeyManager & IR
 					...getDidKeyResolver(),
 				}),
 			}),
-            new Cheqd({
-                providers: [didProviderCheqdTestnet]
-            }),
+			new Cheqd({
+				providers: [didProviderCheqdTestnet],
+			}),
 			new CredentialSDJwt(),
 		],
 	};
 
-    // @ts-ignore
+	// @ts-ignore
 	return createAgent<T>(options || defaultOptions);
 }
