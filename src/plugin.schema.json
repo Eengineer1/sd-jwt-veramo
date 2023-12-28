@@ -1,49 +1,491 @@
 {
-  "IMyAgentPlugin": {
+  "ICredentialSDJwt": {
     "components": {
       "schemas": {
-        "IMyAgentPluginFooArgs": {
+        "ICreateVerifiableCredentialSDJwtArgs": {
           "type": "object",
           "properties": {
-            "did": {
-              "type": "string",
-              "description": "Decentralized identifier"
+            "credential": {
+              "$ref": "#/components/schemas/CredentialPayload",
+              "description": "The JSON payload of the Credential according to the  {@link https://www.w3.org/TR/vc-data-model/#credentials | canonical model } .\n\nThe signer of the Credential is chosen based on the `issuer.id` property of the `credential`.\n\n`@context`, `type` and `issuanceDate` will be added automatically if omitted."
             },
-            "bar": {
-              "type": "string",
-              "description": "Lorem ipsum"
+            "undisclosedFields": {
+              "$ref": "#/components/schemas/JSONObject",
+              "description": "[Optional] The non-selectively disclosed fields of the credential.\n\nIf omitted, and no `sdMap` is specified, all fields will be selectively disclosed.\n\nUse either this or `sdMap`, if both are specified, `undisclosedFields` will be used."
             },
-            "foo": {
+            "sdMap": {
+              "$ref": "#/components/schemas/SDMap",
+              "description": "[Optional] The SDMap of the credential, in case it is already known and / or decoy fields should be added, per field.\n\nIf omitted, and no `undisclosedFields` is specified, all fields will be selectively disclosed.\n\nUse either this or `undisclosedFields`, if both are specified, `undisclosedFields` will be used."
+            },
+            "removeOriginalFields": {
+              "type": "boolean",
+              "description": "Remove payload members during JWT-JSON transformation. Defaults to `true`. See https://www.w3.org/TR/vc-data-model/#jwt-encoding"
+            },
+            "keyRef": {
               "type": "string",
-              "description": "Dolorem"
+              "description": "[Optional] The ID of the key that should sign this credential. If this is not specified, the first matching key will be used."
             }
           },
           "required": [
-            "did",
-            "bar",
-            "foo"
+            "credential"
           ],
-          "description": "Arguments needed for  {@link  MyAgentPlugin.myPluginFoo  } \nTo be able to export a plugin schema, your plugin methods should use an `args` parameter of a named type or interface."
+          "additionalProperties": {
+            "description": "Passthrough options."
+          },
+          "description": "Arguments needed for  {@link  CredentialSDJwt.createVerifiableCredentialSDJwt  }  To be able to export a plugin schema, your plugin methods should use an `args` parameter of a named type or interface."
         },
-        "IMyAgentPluginFooResult": {
+        "CredentialPayload": {
           "type": "object",
           "properties": {
-            "foobar": {
+            "issuer": {
+              "$ref": "#/components/schemas/IssuerType"
+            },
+            "credentialSubject": {
+              "$ref": "#/components/schemas/CredentialSubject"
+            },
+            "type": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "@context": {
+              "$ref": "#/components/schemas/ContextType"
+            },
+            "issuanceDate": {
+              "$ref": "#/components/schemas/DateType"
+            },
+            "expirationDate": {
+              "$ref": "#/components/schemas/DateType"
+            },
+            "credentialStatus": {
+              "$ref": "#/components/schemas/CredentialStatusReference"
+            },
+            "id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "issuer"
+          ],
+          "description": "Used as input when creating Verifiable Credentials"
+        },
+        "IssuerType": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id"
+              ]
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "The issuer of a  {@link  VerifiableCredential }  or the holder of a  {@link  VerifiablePresentation } .\n\nThe value of the issuer property MUST be either a URI or an object containing an id property. It is RECOMMENDED that the URI in the issuer or its id be one which, if de-referenced, results in a document containing machine-readable information about the issuer that can be used to verify the information expressed in the credential.\n\nSee  {@link https://www.w3.org/TR/vc-data-model/#issuer | Issuer data model }"
+        },
+        "CredentialSubject": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            }
+          },
+          "description": "The value of the credentialSubject property is defined as a set of objects that contain one or more properties that are each related to a subject of the verifiable credential. Each object MAY contain an id.\n\nSee  {@link https://www.w3.org/TR/vc-data-model/#credential-subject | Credential Subject }"
+        },
+        "ContextType": {
+          "anyOf": [
+            {
               "type": "string"
             },
-            "baz": {}
+            {
+              "type": "object"
+            },
+            {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object"
+                  }
+                ]
+              }
+            }
+          ],
+          "description": "The data type for `@context` properties of credentials, presentations, etc."
+        },
+        "DateType": {
+          "type": "string",
+          "description": "Represents an issuance or expiration date for Credentials / Presentations. This is used as input when creating them."
+        },
+        "CredentialStatusReference": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string"
+            }
           },
-          "description": "Result of  {@link  MyAgentPlugin.myPluginFoo  } \nTo be able to export a plugin schema, your plugin return types need to be Promises of a named type or interface."
+          "required": [
+            "id",
+            "type"
+          ],
+          "description": "Used for the discovery of information about the current status of a verifiable credential, such as whether it is suspended or revoked. The precise contents of the credential status information is determined by the specific `credentialStatus` type definition, and varies depending on factors such as whether it is simple to implement or if it is privacy-enhancing.\n\nSee  {@link https://www.w3.org/TR/vc-data-model/#status | Credential Status }"
+        },
+        "JSONObject": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/components/schemas/JSONValue"
+          }
+        },
+        "JSONValue": {
+          "anyOf": [
+            {
+              "$ref": "#/components/schemas/JSONPrimitive"
+            },
+            {
+              "$ref": "#/components/schemas/JSONObject"
+            },
+            {
+              "$ref": "#/components/schemas/JSONArray"
+            }
+          ]
+        },
+        "JSONPrimitive": {
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "null"
+          ]
+        },
+        "JSONArray": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/JSONValue"
+          }
+        },
+        "SDMap": {
+          "type": "object",
+          "properties": {
+            "size": {
+              "type": "number"
+            },
+            "fields": {
+              "type": "object",
+              "properties": {
+                "size": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "size"
+              ]
+            },
+            "decoyMode": {
+              "$ref": "#/components/schemas/DecoyMode"
+            },
+            "decoys": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "decoyMode",
+            "decoys",
+            "fields",
+            "size"
+          ]
+        },
+        "DecoyMode": {
+          "type": "string",
+          "enum": [
+            "NONE",
+            "FIXED",
+            "RANDOM"
+          ],
+          "description": "Mode for adding decoy digests on SD-JWT issuance. NONE: no decoy digests are added FIXED: a fixed number of decoy digests are added RANDOM: a random number of decoy digests are added"
+        },
+        "TCreateVerifiableCredentialSDJwtResult": {
+          "type": "object",
+          "properties": {
+            "sdJwt": {
+              "$ref": "#/components/schemas/SDJwt",
+              "description": "The signed SDJwt."
+            }
+          },
+          "required": [
+            "sdJwt"
+          ],
+          "description": "Result of  {@link  CredentialSDJwt.createVerifiableCredentialSDJwt  }  To be able to export a plugin schema, your plugin return types need to be Promises of a named type or interface."
+        },
+        "SDJwt": {
+          "type": "object",
+          "properties": {
+            "constructor": {
+              "type": "object",
+              "properties": {
+                "prototype": {},
+                "length": {
+                  "type": "number"
+                },
+                "arguments": {},
+                "caller": {
+                  "$ref": "#/components/schemas/interface-2073358172-9884-11311-2073358172-0-213476"
+                }
+              },
+              "required": [
+                "prototype",
+                "length",
+                "arguments",
+                "caller"
+              ]
+            },
+            "jwt": {
+              "type": "string"
+            },
+            "holderJwt": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "disclosures": {
+              "type": "object",
+              "properties": {
+                "size": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "size"
+              ],
+              "description": "Encoded disclosures, included in this SD-JWT."
+            },
+            "disclosureObjects": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/SDisclosure"
+              }
+            },
+            "undisclosedPayload": {
+              "$ref": "#/components/schemas/UndisclosedPayload"
+            },
+            "fullPayload": {
+              "$ref": "#/components/schemas/JSONObject"
+            },
+            "digestedDisclosures": {
+              "type": "object",
+              "properties": {
+                "size": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "size"
+              ]
+            },
+            "sdMap": {
+              "$ref": "#/components/schemas/SDMap"
+            },
+            "algorithm": {
+              "type": "string",
+              "description": "The algorithm used to sign this SD-JWT, e.g. 'ES256K-R', 'EdDSA, included in the header."
+            },
+            "keyId": {
+              "type": "string",
+              "description": "The key id of the key used to sign this SD-JWT, included in the header."
+            },
+            "jwk": {
+              "$ref": "#/components/schemas/JSONWebKey",
+              "description": "the signature key in JWK format, included in the header, if present."
+            }
+          },
+          "required": [
+            "algorithm",
+            "constructor",
+            "digestedDisclosures",
+            "disclosureObjects",
+            "disclosures",
+            "fullPayload",
+            "jwt",
+            "sdMap",
+            "undisclosedPayload"
+          ]
+        },
+        "interface-2073358172-9884-11311-2073358172-0-213476": {
+          "type": "object",
+          "properties": {
+            "prototype": {},
+            "length": {
+              "type": "number"
+            },
+            "arguments": {},
+            "caller": {
+              "$ref": "#/components/schemas/interface-2073358172-9884-11311-2073358172-0-213476"
+            }
+          },
+          "required": [
+            "prototype",
+            "length",
+            "arguments",
+            "caller"
+          ]
+        },
+        "SDisclosure": {
+          "type": "object",
+          "properties": {
+            "disclosure": {
+              "type": "string"
+            },
+            "salt": {
+              "type": "string"
+            },
+            "key": {
+              "type": "string"
+            },
+            "value": {
+              "$ref": "#/components/schemas/JSONValue"
+            }
+          },
+          "required": [
+            "disclosure",
+            "salt",
+            "key",
+            "value"
+          ]
+        },
+        "UndisclosedPayload": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/components/schemas/JSONValue"
+          },
+          "properties": {
+            "_sd": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "_sd_alg": {
+              "type": "string",
+              "const": "sha-256"
+            }
+          }
+        },
+        "JSONWebKey": {
+          "type": "object",
+          "properties": {
+            "alg": {
+              "type": "string"
+            },
+            "crv": {
+              "type": "string"
+            },
+            "e": {
+              "type": "string"
+            },
+            "ext": {
+              "type": "boolean"
+            },
+            "key_ops": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "kid": {
+              "type": "string"
+            },
+            "kty": {
+              "type": "string"
+            },
+            "n": {
+              "type": "string"
+            },
+            "use": {
+              "type": "string"
+            },
+            "x": {
+              "type": "string"
+            },
+            "y": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "kty"
+          ]
+        },
+        "ICreateVerifiablePresentationSDJwtArgs": {
+          "type": "object",
+          "description": "Arguments needed for  {@link  CredentialSDJwt.createVerifiablePresentationSDJwt  }  To be able to export a plugin schema, your plugin methods should use an `args` parameter of a named type or interface."
+        },
+        "TCreateVerifiablePresentationSDJwtResult": {
+          "type": "object",
+          "description": "Result of  {@link  CredentialSDJwt.createVerifiablePresentationSDJwt  }  To be able to export a plugin schema, your plugin return types need to be Promises of a named type or interface."
+        },
+        "IVerifyVerifiableCredentialSDJwtArgs": {
+          "type": "object",
+          "description": "Arguments needed for  {@link  CredentialSDJwt.verifyVerifiableCredentialSDJwt  }  To be able to export a plugin schema, your plugin methods should use an `args` parameter of a named type or interface."
+        },
+        "TVerifyVerifiableCredentialSDJwtResult": {
+          "type": "object",
+          "description": "Result of  {@link  CredentialSDJwt.verifyVerifiableCredentialSDJwt  }  To be able to export a plugin schema, your plugin return types need to be Promises of a named type or interface."
+        },
+        "IVerifyVerifiablePresentationSDJwtArgs": {
+          "type": "object",
+          "description": "Arguments needed for  {@link  CredentialSDJwt.verifyVerifiablePresentationSDJwt  }  To be able to export a plugin schema, your plugin methods should use an `args` parameter of a named type or interface."
+        },
+        "TVerifyVerifiablePresentationSDJwtResult": {
+          "type": "object",
+          "description": "Result of  {@link  CredentialSDJwt.verifyVerifiablePresentationSDJwt  }  To be able to export a plugin schema, your plugin return types need to be Promises of a named type or interface."
         }
       },
       "methods": {
-        "myPluginFoo": {
-          "description": "Your plugin method description",
+        "createVerifiableCredentialSDJwt": {
+          "description": "",
           "arguments": {
-            "$ref": "#/components/schemas/IMyAgentPluginFooArgs"
+            "$ref": "#/components/schemas/ICreateVerifiableCredentialSDJwtArgs"
           },
           "returnType": {
-            "$ref": "#/components/schemas/IMyAgentPluginFooResult"
+            "$ref": "#/components/schemas/TCreateVerifiableCredentialSDJwtResult"
+          }
+        },
+        "createVerifiablePresentationSDJwt": {
+          "description": "",
+          "arguments": {
+            "$ref": "#/components/schemas/ICreateVerifiablePresentationSDJwtArgs"
+          },
+          "returnType": {
+            "$ref": "#/components/schemas/TCreateVerifiablePresentationSDJwtResult"
+          }
+        },
+        "verifyVerifiableCredentialSDJwt": {
+          "description": "",
+          "arguments": {
+            "$ref": "#/components/schemas/IVerifyVerifiableCredentialSDJwtArgs"
+          },
+          "returnType": {
+            "$ref": "#/components/schemas/TVerifyVerifiableCredentialSDJwtResult"
+          }
+        },
+        "verifyVerifiablePresentationSDJwt": {
+          "description": "",
+          "arguments": {
+            "$ref": "#/components/schemas/IVerifyVerifiablePresentationSDJwtArgs"
+          },
+          "returnType": {
+            "$ref": "#/components/schemas/TVerifyVerifiablePresentationSDJwtResult"
           }
         }
       }
