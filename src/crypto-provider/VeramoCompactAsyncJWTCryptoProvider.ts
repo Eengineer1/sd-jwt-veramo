@@ -7,7 +7,13 @@ import {
 	verifyCredential as verifyCredentialJwt,
 } from 'did-jwt-vc';
 import { Resolvable } from 'did-resolver';
+import { canonicalize } from 'json-canonicalize';
 
+/**
+ * Options for the VeramoCompactAsyncJWTCryptoProvider, sign method(s).
+ *
+ * @beta
+ */
 export type VeramoCompactAsyncJWTCryptoProviderSignOptions = {
 	did: string;
 	signer: (data: string | Uint8Array) => Promise<string>;
@@ -15,11 +21,22 @@ export type VeramoCompactAsyncJWTCryptoProviderSignOptions = {
 	createCredentialOptions?: CreateCredentialOptions;
 };
 
+/**
+ * Options for the VeramoCompactAsyncJWTCryptoProvider, verify method(s).
+ *
+ * @beta
+ */
 export type VeramoCompactAsyncJWTCryptoProviderVerifyOptions = {
 	resolver: Resolvable;
+	normalisedPayload?: CredentialPayload;
 	verifyCredentialOptions?: VerifyCredentialOptions;
 };
 
+/**
+ * The underlying library specific (sd-jwt-ts) Veramo Compact Async JWT Crypto Provider implementation.
+ *
+ * @beta
+ */
 export class VeramoCompactAsyncJWTCryptoProvider implements AsyncJWTCryptoProvider {
 	constructor() {}
 
@@ -71,13 +88,45 @@ export class VeramoCompactAsyncJWTCryptoProvider implements AsyncJWTCryptoProvid
 
 		// verify jwt
 		try {
-			// verify
-			await verifyCredentialJwt(jwt, options.resolver, options?.verifyCredentialOptions);
+			// verify + define verification result
+			const { verifiableCredential, verified } = await verifyCredentialJwt(
+				jwt,
+				options.resolver,
+				options?.verifyCredentialOptions
+			);
 
-			// return verification result
-			return {
-				verified: true,
-			} satisfies JWTVerificationResult;
+			// validate verification result, negative should never happen as an error is thrown by convention
+			if (!verified)
+				return {
+					verified: false,
+					message: 'invalid_credential: Could not verify credential',
+				} satisfies JWTVerificationResult;
+
+			// validate normalised payload, if applicable + return verification result
+			return options.normalisedPayload && options.normalisedPayload.proof.type === 'JwtProof2020'
+				? (function () {
+						// evaluate normalised payload against verifiable credential, other than jwt itself
+						const untamperedWith =
+							canonicalize({
+								...verifiableCredential,
+								proof: { ...verifiableCredential.proof, jwt: undefined },
+							}) ===
+							canonicalize({
+								...options.normalisedPayload,
+								proof: { ...options.normalisedPayload.proof, jwt: undefined },
+							});
+
+						// return verification result
+						return {
+							verified: untamperedWith,
+							message: untamperedWith
+								? undefined
+								: 'invalid_credential: Credential JSON does not match JWT payload',
+						} satisfies JWTVerificationResult;
+					})()
+				: ({
+						verified,
+					} satisfies JWTVerificationResult);
 		} catch (error) {
 			// return verification result
 			return {

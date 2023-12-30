@@ -1,10 +1,26 @@
 {
   "name": "@eengineer1/veramo-credential-sd-jwt",
   "version": "1.0.0",
+  "type": "module",
   "source": "src/index.ts",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "type": "module",
+  "typesVersions": {
+    "*": {
+      "*": [
+        "*",
+        "dist/*",
+        "dist/*/index"
+      ]
+    }
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    }
+  },
   "veramo": {
     "pluginInterfaces": {
       "ICredentialSDJwt": "./src/types/ICredentialSDJwt.ts"
@@ -25,15 +41,24 @@
   "devDependencies": {
     "@cheqd/did-provider-cheqd": "^3.6.13",
     "@jest/globals": "^29.4.3",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^11.1.0",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^9.2.6",
+    "@semantic-release/npm": "^11.0.2",
+    "@semantic-release/release-notes-generator": "^12.1.0",
     "@types/jest": "^29.5.10",
     "@types/node": "^20.10.5",
     "@veramo/cli": "^5.1.2",
-    "@veramo/did-provider-key": "^5.5.3",
+    "@veramo/did-provider-jwk": "^5.5.3",
     "@veramo/did-resolver": "^5.5.3",
     "@veramo/kms-local": "^5.5.3",
+    "conventional-changelog-conventionalcommits": "^7.0.2",
     "cross-env": "^7.0.3",
+    "dotenv": "^16.3.1",
     "jest": "29.7.0",
     "prettier": "^3.1.1",
+    "semantic-release": "^22.0.12",
     "ts-jest": "29.1.1",
     "typescript": "5.3.2"
   },
@@ -45,8 +70,7 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@eengineer1/sd-jwt-ts-browser": "^1.0.1-develop.3",
-    "@eengineer1/sd-jwt-ts-node": "^1.0.1-develop.3",
+    "@eengineer1/sd-jwt-ts-node": "^1.0.1",
     "@veramo/core": "^5.5.3",
     "@veramo/core-types": "^5.5.3",
     "@veramo/credential-w3c": "^5.5.3",
@@ -55,6 +79,11 @@
     "@veramo/utils": "^5.5.3",
     "did-jwt": "^7.4.7",
     "did-jwt-vc": "^3.2.15",
-    "did-resolver": "^4.1.0"
+    "did-resolver": "^4.1.0",
+    "json-canonicalize": "^1.0.6",
+    "uint8arrays": "^5.0.1"
+  },
+  "engines": {
+    "node": ">=18.17.0"
   }
 }

@@ -19,7 +19,11 @@
             },
             "removeOriginalFields": {
               "type": "boolean",
-              "description": "Remove payload members during JWT-JSON transformation. Defaults to `true`. See https://www.w3.org/TR/vc-data-model/#jwt-encoding"
+              "description": "[Optional] Remove payload members during JWT-JSON transformation. Defaults to `true`. See https://www.w3.org/TR/vc-data-model/#jwt-encoding"
+            },
+            "returnNormalisedCredential": {
+              "type": "boolean",
+              "description": "[Optional] Whether to return the SDJwt as normalised credential payload as well. Defaults to `false`.\n\nUseful for horizontal credential composition, consistency and interoperability."
             },
             "keyRef": {
               "type": "string",
@@ -30,7 +34,7 @@
             "credential"
           ],
           "additionalProperties": {
-            "description": "Passthrough options."
+            "description": "Pass-through options."
           },
           "description": "Arguments needed for  {@link  CredentialSDJwt.createVerifiableCredentialSDJwt  }  To be able to export a plugin schema, your plugin methods should use an `args` parameter of a named type or interface."
         },
@@ -220,7 +224,11 @@
           "properties": {
             "sdJwt": {
               "$ref": "#/components/schemas/SDJwt",
-              "description": "The signed SDJwt."
+              "description": "The signed SDJwt credential."
+            },
+            "normalisedCredential": {
+              "$ref": "#/components/schemas/VerifiableCredential",
+              "description": "The normalised signed credential, if `returnNormalisedCredential` was set to `true`."
             }
           },
           "required": [
@@ -426,34 +434,370 @@
             "kty"
           ]
         },
+        "VerifiableCredential": {
+          "type": "object",
+          "properties": {
+            "proof": {
+              "$ref": "#/components/schemas/ProofType"
+            },
+            "issuer": {
+              "$ref": "#/components/schemas/IssuerType"
+            },
+            "credentialSubject": {
+              "$ref": "#/components/schemas/CredentialSubject"
+            },
+            "type": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "@context": {
+              "$ref": "#/components/schemas/ContextType"
+            },
+            "issuanceDate": {
+              "type": "string"
+            },
+            "expirationDate": {
+              "type": "string"
+            },
+            "credentialStatus": {
+              "$ref": "#/components/schemas/CredentialStatusReference"
+            },
+            "id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "@context",
+            "credentialSubject",
+            "issuanceDate",
+            "issuer",
+            "proof"
+          ],
+          "description": "Represents a signed Verifiable Credential payload (includes proof), using a JSON representation. See  {@link https://www.w3.org/TR/vc-data-model/#credentials | VC data model }"
+        },
+        "ProofType": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string"
+            }
+          },
+          "description": "A proof property of a  {@link  VerifiableCredential }  or  {@link  VerifiablePresentation }"
+        },
         "ICreateVerifiablePresentationSDJwtArgs": {
           "type": "object",
+          "properties": {
+            "presentation": {
+              "$ref": "#/components/schemas/SDJwtPresentationPayload",
+              "description": "The JSON payload of the Presentation according to the  {@link https://www.w3.org/TR/vc-data-model/#presentations | canonical model } .\n\nThe signer of the Presentation is chosen based on the `holder` property of the `presentation`\n\n`@context`, `type` and `issuanceDate` will be added automatically if omitted"
+            },
+            "challenge": {
+              "type": "string",
+              "description": "Optional (only JWT) string challenge parameter to add to the verifiable presentation."
+            },
+            "domain": {
+              "type": "string",
+              "description": "Optional string domain parameter to add to the verifiable presentation."
+            },
+            "removeOriginalFields": {
+              "type": "boolean",
+              "description": "Remove payload members during JWT-JSON transformation. Defaults to `true`. See https://www.w3.org/TR/vc-data-model/#jwt-encoding"
+            },
+            "returnNormalisedPresentation": {
+              "type": "boolean",
+              "description": "[Optional] Whether to return the SDJwt as normalised presentation payload as well. Defaults to `false`.\n\nUseful for horizontal presentation composition, consistency and interoperability."
+            },
+            "keyRef": {
+              "type": "string",
+              "description": "[Optional] The ID of the key that should sign this presentation. If this is not specified, the first matching key will be used."
+            }
+          },
+          "required": [
+            "presentation"
+          ],
+          "additionalProperties": {
+            "description": "Pass-through options."
+          },
           "description": "Arguments needed for  {@link  CredentialSDJwt.createVerifiablePresentationSDJwt  }  To be able to export a plugin schema, your plugin methods should use an `args` parameter of a named type or interface."
+        },
+        "SDJwtPresentationPayload": {
+          "type": "object",
+          "properties": {
+            "presentWithSDMap": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/SDMap"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "description": "The selection of disclosures for this presentation, per credential, if any, defined as SDMap.\n\nSet as `null` if no selective disclosure maps are defined per credential, retaining the original credential order."
+            },
+            "presentWithHolderJwt": {
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "description": "The holder JWT for this presentation, per credential, if any, defined as JWT.\n\nSet as `null` if no holder JWTs are defined per credential, retaining the original credential order."
+            },
+            "holder": {
+              "type": "string"
+            },
+            "verifiableCredential": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/W3CVerifiableCredential"
+              }
+            },
+            "type": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "@context": {
+              "$ref": "#/components/schemas/ContextType"
+            },
+            "verifier": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "issuanceDate": {
+              "$ref": "#/components/schemas/DateType"
+            },
+            "expirationDate": {
+              "$ref": "#/components/schemas/DateType"
+            },
+            "id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "holder"
+          ],
+          "description": "The SDJwt presentation payload, extended with additional selective disclosure options and holder JWTs."
+        },
+        "W3CVerifiableCredential": {
+          "anyOf": [
+            {
+              "$ref": "#/components/schemas/VerifiableCredential"
+            },
+            {
+              "$ref": "#/components/schemas/CompactJWT"
+            }
+          ],
+          "description": "Represents a signed Verifiable Credential (includes proof), in either JSON or compact JWT format. See  {@link https://www.w3.org/TR/vc-data-model/#credentials | VC data model }  See  {@link https://www.w3.org/TR/vc-data-model/#proof-formats | proof formats }"
+        },
+        "CompactJWT": {
+          "type": "string",
+          "description": "Represents a Json Web Token in compact form. \"header.payload.signature\""
         },
         "TCreateVerifiablePresentationSDJwtResult": {
           "type": "object",
+          "properties": {
+            "sdJwtPresentation": {
+              "type": "string",
+              "description": "The signed SDJwt presentation."
+            },
+            "normalisedPresentation": {
+              "$ref": "#/components/schemas/VerifiablePresentation",
+              "description": "The normalised signed presentation, if `returnNormalisedPresentation` was set to `true`."
+            }
+          },
+          "required": [
+            "sdJwtPresentation"
+          ],
           "description": "Result of  {@link  CredentialSDJwt.createVerifiablePresentationSDJwt  }  To be able to export a plugin schema, your plugin return types need to be Promises of a named type or interface."
+        },
+        "VerifiablePresentation": {
+          "type": "object",
+          "properties": {
+            "proof": {
+              "$ref": "#/components/schemas/ProofType"
+            },
+            "holder": {
+              "type": "string"
+            },
+            "verifiableCredential": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/W3CVerifiableCredential"
+              }
+            },
+            "type": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "@context": {
+              "$ref": "#/components/schemas/ContextType"
+            },
+            "verifier": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "issuanceDate": {
+              "type": "string"
+            },
+            "expirationDate": {
+              "type": "string"
+            },
+            "id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "@context",
+            "holder",
+            "proof"
+          ],
+          "description": "Represents a signed Verifiable Presentation (includes proof), using a JSON representation. See  {@link https://www.w3.org/TR/vc-data-model/#presentations | VP data model }"
         },
         "IVerifyVerifiableCredentialSDJwtArgs": {
           "type": "object",
+          "properties": {
+            "credential": {
+              "$ref": "#/components/schemas/W3CVerifiableCredential",
+              "description": "The Verifiable Credential object according to the  {@link https://www.w3.org/TR/vc-data-model/#credentials | canonical model }  or the JWT representation.\n\nThe signer of the Credential is verified based on the `issuer.id` property of the `credential` or the `iss` property of the JWT payload respectively."
+            },
+            "policies": {
+              "$ref": "#/components/schemas/VerificationPolicies",
+              "description": "Overrides specific aspects of credential verification, where possible."
+            }
+          },
+          "required": [
+            "credential"
+          ],
+          "additionalProperties": {
+            "description": "Pass-through options."
+          },
           "description": "Arguments needed for  {@link  CredentialSDJwt.verifyVerifiableCredentialSDJwt  }  To be able to export a plugin schema, your plugin methods should use an `args` parameter of a named type or interface."
         },
-        "TVerifyVerifiableCredentialSDJwtResult": {
+        "VerificationPolicies": {
           "type": "object",
+          "properties": {
+            "now": {
+              "type": "number",
+              "description": "policy to over the now (current time) during the verification check (UNIX time in seconds)"
+            },
+            "issuanceDate": {
+              "type": "boolean",
+              "description": "policy to skip the issuanceDate (nbf) timestamp check when set to `false`"
+            },
+            "expirationDate": {
+              "type": "boolean",
+              "description": "policy to skip the expirationDate (exp) timestamp check when set to `false`"
+            },
+            "audience": {
+              "type": "boolean",
+              "description": "policy to skip the audience check when set to `false`"
+            },
+            "credentialStatus": {
+              "type": "boolean",
+              "description": "policy to skip the revocation check (credentialStatus) when set to `false`"
+            }
+          },
+          "additionalProperties": {
+            "description": "Other options can be specified for verification. They will be forwarded to the lower level modules that perform the checks"
+          },
+          "description": "These optional settings can be used to override some default checks that are performed on Presentations during verification."
+        },
+        "TVerifyVerifiableCredentialSDJwtResult": {
+          "$ref": "#/components/schemas/JWTVerificationResult",
           "description": "Result of  {@link  CredentialSDJwt.verifyVerifiableCredentialSDJwt  }  To be able to export a plugin schema, your plugin return types need to be Promises of a named type or interface."
+        },
+        "JWTVerificationResult": {
+          "type": "object",
+          "properties": {
+            "verified": {
+              "type": "boolean"
+            },
+            "message": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "verified"
+          ]
         },
         "IVerifyVerifiablePresentationSDJwtArgs": {
           "type": "object",
+          "properties": {
+            "presentation": {
+              "$ref": "#/components/schemas/W3CVerifiablePresentation",
+              "description": "The Verifiable Presentation object according to the  {@link https://www.w3.org/TR/vc-data-model/#presentations | canonical model }  or the JWT representation.\n\nThe signer of the Presentation is verified based on the `holder` property of the `presentation` or the `iss` property of the JWT payload respectively."
+            },
+            "challenge": {
+              "type": "string",
+              "description": "Optional (only for JWT) string challenge parameter to verify the verifiable presentation against."
+            },
+            "domain": {
+              "type": "string",
+              "description": "Optional (only for JWT) string domain parameter to verify the verifiable presentation against."
+            },
+            "policies": {
+              "$ref": "#/components/schemas/VerificationPolicies",
+              "description": "Overrides specific aspects of credential verification, where possible."
+            }
+          },
+          "required": [
+            "presentation"
+          ],
+          "additionalProperties": {
+            "description": "Pass-through options."
+          },
           "description": "Arguments needed for  {@link  CredentialSDJwt.verifyVerifiablePresentationSDJwt  }  To be able to export a plugin schema, your plugin methods should use an `args` parameter of a named type or interface."
         },
+        "W3CVerifiablePresentation": {
+          "anyOf": [
+            {
+              "$ref": "#/components/schemas/VerifiablePresentation"
+            },
+            {
+              "$ref": "#/components/schemas/CompactJWT"
+            }
+          ],
+          "description": "Represents a signed Verifiable Presentation (includes proof) in either JSON or compact JWT format. See  {@link https://www.w3.org/TR/vc-data-model/#credentials | VC data model }"
+        },
         "TVerifyVerifiablePresentationSDJwtResult": {
-          "type": "object",
+          "$ref": "#/components/schemas/JWTVerificationResult",
           "description": "Result of  {@link  CredentialSDJwt.verifyVerifiablePresentationSDJwt  }  To be able to export a plugin schema, your plugin return types need to be Promises of a named type or interface."
         }
       },
       "methods": {
         "createVerifiableCredentialSDJwt": {
-          "description": "",
+          "description": "Create a signed SD-JWT credential.",
           "arguments": {
             "$ref": "#/components/schemas/ICreateVerifiableCredentialSDJwtArgs"
           },
@@ -462,7 +806,7 @@
           }
         },
         "createVerifiablePresentationSDJwt": {
-          "description": "",
+          "description": "Create a signed SD-JWT presentation.",
           "arguments": {
             "$ref": "#/components/schemas/ICreateVerifiablePresentationSDJwtArgs"
           },
@@ -471,7 +815,7 @@
           }
         },
         "verifyVerifiableCredentialSDJwt": {
-          "description": "",
+          "description": "Verify a signed SD-JWT credential.",
           "arguments": {
             "$ref": "#/components/schemas/IVerifyVerifiableCredentialSDJwtArgs"
           },
@@ -480,7 +824,7 @@
           }
         },
         "verifyVerifiablePresentationSDJwt": {
-          "description": "",
+          "description": "Verify a signed SD-JWT presentation.",
           "arguments": {
             "$ref": "#/components/schemas/IVerifyVerifiablePresentationSDJwtArgs"
           },
