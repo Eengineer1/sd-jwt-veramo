@@ -22,7 +22,6 @@ jobs:
         run: |
           npm ci
           npm run build
-          npm run generate-plugin-schema
 
       # temporarily disabled, as `z-schema` as a `@veramo/core@5.5.3` is not transformed to ESM from CommonJS properly
       # otherwise, tests pass by removing z-schema object validator as a workaround

@@ -28,7 +28,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "generate-plugin-schema": "npm run build && veramo dev generate-plugin-schema",
+    "generate-plugin-schema": "veramo dev generate-plugin-schema",
     "format": "prettier --write 'src/**/*.{js,ts,cjs,mjs}' 'tests/**/*.{js,ts,cjs,mjs}'",
     "start": "veramo server",
     "build:watch": "tsc -b --watch",
