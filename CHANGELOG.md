@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.0.1](https://github.com/Eengineer1/sd-jwt-veramo/compare/1.0.0...1.0.1) (2023-12-31)
+
 ## [1.0.1-develop.1](https://github.com/Eengineer1/sd-jwt-veramo/compare/1.0.0...1.0.1-develop.1) (2023-12-31)
 
 ## 1.0.0 (2023-12-30)
